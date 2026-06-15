@@ -1,0 +1,18 @@
+services:
+  spring-app:
+    build: . # Compiles the Dockerfile in the current directory
+    container_name: local-spring-container
+    ports:
+      - "8080:8080" # Maps port 8080 on your laptop to port 8080 in the container
+    environment:
+      # These exact variable names override your application.properties automatically
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_dev_db:5432/mercedes_test_db #your_existing_postgres_container_name:5432/your_db_name
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=Admin@789
+    networks:
+      - my_existing_network # Attaches this container to your database network
+
+networks:
+  my_existing_network:
+    external: true # Tells Docker Compose that the network already exists outside this file
+    name: postgre_dev_db_default # Replace with the actual name of your network
