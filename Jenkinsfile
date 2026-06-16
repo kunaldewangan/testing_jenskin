@@ -19,8 +19,12 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                // Compiles code and skips tests for speed
-                sh './mvnw clean package -DskipTests'
+			 // Grant execute permission to the maven wrapper script
+			sh 'chmod +x mvnw'
+        
+			// Now run the build command
+			// Compiles code and skips tests for speed
+			sh './mvnw clean package -DskipTests'
             }
         }
 
