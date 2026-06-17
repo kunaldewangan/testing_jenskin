@@ -44,6 +44,10 @@ pipeline {
                 } // end stage: Build Application
 
                 stage('Build Docker Image') {
+                     tools {
+                        // again received error on this stage that docker not found so(maybe docker cli lost here) Re-enforces the tool paths explicitly for the docker execution engine
+                        dockerTool 'docker-cli-from-jenkins'
+                        } //end of tool.
                     steps {
                         // Stays inside the same environment: 'target/' folder is found!
                         sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
