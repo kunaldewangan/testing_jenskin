@@ -2,12 +2,18 @@ pipeline {
     // 1. Start on any available agent without requiring a container upfront
     agent any
 
-    tools {
-        // 2. Load the Docker CLI tool immediately so the 'docker' command works(this name can be found in jenkins->tool->docker installation -> name)
-        dockerTool 'docker-cli-from-jenkins'
-    }
+    // tools {
+    //     // 2. Load the Docker CLI tool immediately so the 'docker' command works(this name can be found in jenkins->tool->docker installation -> name)
+    //     dockerTool 'docker-cli-from-jenkins'
+    // }
+
+    
 
     environment {
+
+        // Forces the host Docker daemon to bypass strict version blocking
+        DOCKER_API_VERSION = "1.44"
+        
         REGISTRY = "local-registry"
         IMAGE_NAME = "dummy-spring-app-testing-jenskin"
         IMAGE_TAG = "latest"
