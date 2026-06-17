@@ -1,16 +1,9 @@
 pipeline {
-    agent {
-        docker {
-            // This container runs Java 25 to safely compile your code
-            image 'eclipse-temurin:25-jdk' 
-            // Gives your Jenkins container access to the host machine's Docker engine
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    // 1. Start on any available agent without requiring a container upfront
+    agent any
 
     tools {
-        // Setting Docker cli to execute docker command. Automatically installs and enables the Docker CLI executable tool inside this pipeline
-        // This must match the exact Name you saved in your Jenkins Global Tool ->docker installation -> name settings
+        // 2. Load the Docker CLI tool immediately so the 'docker' command works(this name can be found in jenkins->tool->docker installation -> name)
         dockerTool 'docker-cli-from-jenkins'
     }
 
@@ -25,24 +18,28 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                // Jenkins automatically clones the specific branch configured in the GUI
                 checkout scm
             }
         }
 
         stage('Build Application') {
+            // 3. Move the Java 25 Docker container restriction inside this specific stage
+            agent {
+                docker {
+                    image 'eclipse-temurin:25-jdk' 
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
-                // Grant execute permission to the maven wrapper script
                 sh 'chmod +x mvnw'
-            
-                // Compiles code and skips tests for speed using Java 25
+                // This now executes safely inside the Java 25 container
                 sh './mvnw clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                // Builds the local docker image using the activated Docker tool
+                // This runs on the host engine using your tool
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
@@ -50,14 +47,12 @@ pipeline {
         stage('Deploy to Local Docker') {
             steps {
                 script {
-                    // Stop and remove old container if it exists to avoid port conflicts
                     try {
                         sh "docker stop ${CONTAINER_NAME}"
                         sh "docker rm ${CONTAINER_NAME}"
                     } catch (Exception e) {
                         echo "No existing container found to stop."
                     }
-                    // Run the new container
                     sh "docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
