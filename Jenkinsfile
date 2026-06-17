@@ -3,6 +3,9 @@ pipeline {
         docker {
             // Change your current image to this Java 25 image
             image 'eclipse-temurin:25-jdk' 
+
+			 // This jenskin is running inside docker container and you want to create and run another docker container(from docker container which is jenskin container) This will give docker control to jenskin re-uses the host's Docker daemon automatically.
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 
