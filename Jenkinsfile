@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            // Change your current image to this Java 25 image
+            image 'eclipse-temurin:25-jdk' 
+        }
+    }
 
     environment {
         REGISTRY = "local-registry"
