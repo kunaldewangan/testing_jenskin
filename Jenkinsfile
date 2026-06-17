@@ -1,12 +1,17 @@
 pipeline {
     agent {
         docker {
-            // Change your current image to this Java 25 image
+            // This container runs Java 25 to safely compile your code
             image 'eclipse-temurin:25-jdk' 
-
-			 // This jenskin is running inside docker container and you want to create and run another docker container(from docker container which is jenskin container) This will give docker control to jenskin re-uses the host's Docker daemon automatically.
+            // Gives your Jenkins container access to the host machine's Docker engine
             args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
+    }
+
+    tools {
+        // Setting Docker cli to execute docker command. Automatically installs and enables the Docker CLI executable tool inside this pipeline
+        // This must match the exact Name you saved in your Jenkins Global Tool ->docker installation -> name settings
+        dockerTool 'docker-cli-from-jenkins'
     }
 
     environment {
@@ -27,18 +32,17 @@ pipeline {
 
         stage('Build Application') {
             steps {
-			 // Grant execute permission to the maven wrapper script
-			sh 'chmod +x mvnw'
-        
-			// Now run the build command
-			// Compiles code and skips tests for speed
-			sh './mvnw clean package -DskipTests'
+                // Grant execute permission to the maven wrapper script
+                sh 'chmod +x mvnw'
+            
+                // Compiles code and skips tests for speed using Java 25
+                sh './mvnw clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                // Builds the local docker image
+                // Builds the local docker image using the activated Docker tool
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
